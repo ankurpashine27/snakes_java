@@ -12,16 +12,15 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
 
     private int x1Coord =50;
     private int y1Coord =60;
-    private int x2Coord =20;
-    private int y2Coord =60;
-    private int snakeLengthX = 5;
-    private int snakeLengthY = 5;
+    private int snakeSize = 10;
+    private int snakeSpeed = 5;
 
-    private int defaultLength = 5;
+    private boolean up = false;
+    private boolean down = false;
+    private boolean left= false;
+    private boolean right = true; // Starting position
 
-    private boolean up,down, left, right = true;
-
-    private Timer timer;
+    private Timer timer; // For animation
 
     public GamePanel() {
         Border gameBorder = BorderFactory.createLineBorder(Color.WHITE);
@@ -32,13 +31,7 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
         addKeyListener(this);
         this.setFocusable(true);
 
-        startGame();
-    }
-
-    public void startGame() {
-        timer = new Timer(100, e -> {
-            updateSnakePosition();
-        });
+        timer = new Timer(100, this);
         timer.start();
     }
 
@@ -47,19 +40,16 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
 
         Graphics2D g2d = (Graphics2D) g;
         g2d.drawString("Welcome to the Snake Game!", 50, 50);
-        g2d.setColor(Color.WHITE);
-        g2d.setStroke(new BasicStroke(2));
-        g2d.drawLine(x1Coord, y1Coord, x2Coord, y2Coord);
+        g2d.setColor(Color.white);
+        g2d.fillRect(x1Coord, y1Coord, snakeSize, snakeSize);
 
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        updateSnakePosition();
+        moveSnake();
+        repaint();
     }
-
-    @Override
-    public void keyTyped(KeyEvent e) {    }
 
     @Override
     public void keyPressed(KeyEvent e) {
@@ -80,39 +70,47 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
         }
     }
 
-    @Override
-    public void keyReleased(KeyEvent e) {
-        System.out.println("key released: " + e.getKeyCode() + " " + e.getKeyChar());
-    }
-
     public void updateDirection(boolean up, boolean down, boolean left, boolean right) {
-        System.out.println("Direction updated: " +
-            "Up: " + up + ", Down: " + down +
-            ", Left: " + left + ", Right: " + right);
+
+        if(this.up && down) return; // Prevents moving in opposite direction immediately
+        if(this.down && up) return; // Prevents moving in opposite direction immediately
+        if(this.left && right) return; // Prevents moving in opposite direction immediately
+        if(this.right && left) return; // Prevents moving in opposite direction immediately
+
         this.up = up;
         this.down = down;
         this.left = left;
         this.right = right;
     }
 
-    public void updateCoordinates(int x1, int y1, int x2, int y2) {
+    public void updateCoordinates(int x1, int y1) {
         this.x1Coord = x1;
         this.y1Coord = y1;
-        this.x2Coord = x2;
-        this.y2Coord = y2;
     }
 
-    public void updateSnakePosition() {
+    public void moveSnake() {
         if (up) {
-            updateCoordinates(x1Coord, y1Coord - snakeLengthY, x2Coord, y2Coord - snakeLengthY);
+            y1Coord -= snakeSpeed;
         } else if (down) {
-            updateCoordinates(x1Coord, y1Coord + snakeLengthY, x2Coord, y2Coord + snakeLengthY);
+            y1Coord += snakeSpeed;
         } else if (left) {
-            updateCoordinates(x1Coord - snakeLengthX, y1Coord, x2Coord - snakeLengthX, y2Coord);
+            x1Coord -= snakeSpeed;
         } else if (right) {
-            updateCoordinates(x1Coord + snakeLengthX, y1Coord, x2Coord + snakeLengthX, y2Coord);
+            x1Coord += snakeSpeed;
         }
 
-        repaint();
+        // Boundary conditions
+        if (x1Coord < 0) x1Coord = 0;
+        if (y1Coord < 0) y1Coord = 0;
+        if (x1Coord > getWidth() - snakeSize) x1Coord = getWidth() - snakeSize;
+        if (y1Coord > getHeight() - snakeSize) y1Coord = getHeight() - snakeSize;
     }
+
+
+    @Override
+    public void keyTyped(KeyEvent e) {    }
+
+
+    @Override
+    public void keyReleased(KeyEvent e) {    }
 }
